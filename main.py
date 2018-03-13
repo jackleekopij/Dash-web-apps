@@ -7,6 +7,12 @@ from loremipsum import get_sentences
 from helpers_html import *
 from helpers_data import *
 import datetime
+from helpers_mongo import *
+
+from pymongo import MongoClient
+import datetime
+import pprint
+from bson.objectid import ObjectId
 
 
 # Set application defaults
@@ -97,8 +103,8 @@ def change_to_break(click):
 
 
 
-@app.callback(Output('tab-output', 'children'), [Input('tabs', 'value')], [State("pomodoro-button", "n_clicks"), State("break-button", "n_clicks")], events=[Event("interval-component","interval")])
-def display_content(value, pomodoro_button, break_button):
+@app.callback(Output('tab-output', 'children'), [Input('tabs', 'value')], [State("pomodoro-button", "n_clicks"), State("break-button", "n_clicks"), State("pomodoro-task", "value")], events=[Event("interval-component","interval")])
+def display_content(value, pomodoro_button, break_button, task_string):
     global minutes
     global seconds
     if minutes == 25 and pomodoro_button == break_button:
@@ -116,6 +122,10 @@ def display_content(value, pomodoro_button, break_button):
     if value == 0 and minutes >= 0:
         return html.Div( [html.H1(interval)],style={'margin-top': '250'})
     elif minutes < 0 and pomodoro_button == break_button:
+        if minutes == -1 and seconds == 58:
+            write_goal_to_db = MongoDB()
+            insert_output = write_goal_to_db.write_to_database(task_string)
+            print(insert_output)
         return html.Div([html.H1("Pomodoro over!")],
                         style={'margin-top': '250'})
     elif minutes < 0 and pomodoro_button != break_button:
